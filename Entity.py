@@ -1,0 +1,136 @@
+from abc import ABC, abstractmethod
+from datetime import datetime
+from functools import cached_property
+
+
+class BaseEntity(ABC):
+    @property
+    @abstractmethod
+    def primary_key(self):
+        """
+        这里需要继承的子类返回自己的主键
+        """
+        pass
+
+    @abstractmethod
+    def convert_to_list(self):
+        """
+        这里需要继承的子类把自己的数据转换为列表
+        """
+        pass
+
+    @classmethod
+    @abstractmethod
+    def convert_to_object(cls,list_to_convert):
+        """
+        这里需要继承的子类完成将list变回对象
+        """
+        pass
+
+
+class Movie(BaseEntity):
+    def __init__(self,movie_code,movie_name,cinema_number,cinema_start_time,cinema_end_time,date,original_price,discount):
+        self.movie_code = movie_code
+        self.movie_name = movie_name
+        self.cinema_number = cinema_number
+        self.cinema_start_time = cinema_start_time
+        self.cinema_end_time = cinema_end_time
+        self.date = date
+        self.original_price = original_price
+        self.discount = discount
+
+
+    def __str__(self):
+        information = []
+        all_attributes = dir(self)
+        for attribute in all_attributes:
+            if attribute.startswith("_"):
+                continue
+            try:
+                value = getattr(self, attribute)
+                if callable(value):
+                    continue
+                information.append(f"{attribute}: {value}")
+            except AttributeError:
+                pass
+        return '\n'.join(information)
+
+    @property
+    def primary_key(self):
+        return self.movie_code
+
+    @property
+    def original_price(self):
+        return self._original_price
+
+    @property
+    def discount(self):
+        return self._discount
+
+    @property
+    def date(self):
+        return self._date
+
+    @property
+    def _start_time(self):
+        if self.cinema_start_time is None: return None
+        return datetime.strptime(self.cinema_start_time, "%H:%M")
+
+    @property
+    def _end_time(self):
+        if self.cinema_end_time is None: return None
+        return datetime.strptime(self.cinema_end_time, "%H:%M")
+
+    @property
+    def final_price(self):
+        if self.original_price is None: return None
+        return self.original_price * (100 - self.discount)/100
+
+    @property
+    def movie_time(self):
+        if self._start_time is None and self._end_time is None: return None
+        duration = self._end_time - self._start_time
+        minutes = int(duration.total_seconds() / 60)
+        if minutes < 0:
+            minutes += 24 * 60
+        return minutes
+
+    @original_price.setter
+    def original_price(self, value):
+        try:
+            int(value)
+        except ValueError:
+            raise ValueError("Error From class Movie: Please enter numeric value, function: original_price setter")
+        self._original_price = int(value)
+
+    @discount.setter
+    def discount(self, value):
+        try:
+            int(value)
+        except ValueError:
+            raise ValueError("Error From class Movie: Please enter numeric value, function: discount setter")
+        if int(value) > 100 or int(value) < 0:
+            raise ValueError("Error From class Movie: discount must be between 0 and 100, function: discount setter")
+        self._discount = int(value)
+
+    @date.setter
+    def date(self, value):
+        try:
+            datetime.strptime(value, "%Y/%m/%d")
+        except ValueError:
+            raise ValueError("Error From class Movie: Invalid date (format YY/MM/DD), function: date setter")
+        except Exception as e:
+            raise Exception(f"Unknown Error From class Movie: {e}, function: date setter")
+        self._date = str(value)
+
+    def convert_to_list(self):
+        return [
+            self.movie_code,self.movie_name,self.cinema_number,self.cinema_start_time,
+            self.cinema_end_time,self.date,self.original_price,self.discount
+        ]
+
+    @classmethod
+    def convert_to_object(cls,list_to_convert):
+        return cls(*list_to_convert)
+
+
