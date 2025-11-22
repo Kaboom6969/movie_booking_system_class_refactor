@@ -76,9 +76,12 @@ class ObjectFileHandler(BaseFileHandler):
     def __str__(self):
         return f"file_path: {self.file_path}\nentity_type: {self.entity_type}"
 
-    def write_to_csv(self,manager_object : BaseManager):
+    def write_to_csv(self,object_list : list):
         data_to_write = []
-        for row  in manager_object.datas:
+        entity_sig = list(inspect.signature(self.entity_type.__init__).parameters.keys())
+        entity_sig.remove('self')
+        data_to_write.append(entity_sig)
+        for row  in object_list:
             data_to_write.append(row.convert_to_list())
         super().write_to_csv(data_to_write)
 
