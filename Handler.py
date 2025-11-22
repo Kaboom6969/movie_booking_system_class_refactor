@@ -41,6 +41,7 @@ class BaseFileHandler:
         with open(self.file_path,"r",newline="") as csv_file:
             file_content = []
             reader = csv.reader(csv_file)
+            next(reader)
             for row in reader:
                 file_content.append(row)
         return file_content
@@ -68,9 +69,12 @@ class BaseFileHandler:
 
 
 class ObjectFileHandler(BaseFileHandler):
-    def __init__(self,file_path,entity_type : BaseEntity):
+    def __init__(self,file_path,entity_type : type[BaseEntity]):
         super().__init__(file_path)
         self.entity_type = entity_type
+
+    def __str__(self):
+        return f"file_path: {self.file_path}\nentity_type: {self.entity_type}"
 
     def write_to_csv(self,manager_object : BaseManager):
         data_to_write = []
