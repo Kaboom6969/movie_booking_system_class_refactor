@@ -1,3 +1,4 @@
+import inspect
 from abc import ABC, abstractmethod
 from datetime import datetime
 from functools import cached_property
@@ -12,15 +13,27 @@ class BaseEntity(ABC):
         """
         pass
 
-    @abstractmethod
+    @property
+    def header(self):
+        entity_sig = list(inspect.signature(self.__init__).parameters.keys())
+        entity_sig.remove('self')
+        return entity_sig
+
     def convert_to_list(self):
-        """
-        这里需要继承的子类把自己的数据转换为列表
-        """
-        pass
+        list_to_return = []
+        for item in self.header:
+            if not hasattr(self, item):
+                raise AttributeError(f"The parameter {item} is not defined")
+            try:
+                list_to_return.append(getattr(self, item))
+            except AttributeError:
+                raise AttributeError(f"The parameter {item} is defined in class {type(self).__name__},but no value")
+
+
+
+
 
     @classmethod
-    @abstractmethod
     def convert_to_object(cls,list_to_convert):
         """
         这里需要继承的子类完成将list变回对象
@@ -133,14 +146,66 @@ class MovieEntity(BaseEntity):
             raise Exception(f"Unknown Error From class Movie: {e}, function: date setter")
         self._date = str(value)
 
-    def convert_to_list(self):
-        return [
-            self.movie_code,self.movie_name,self.cinema_number,self.cinema_start_time,
-            self.cinema_end_time,self.date,self.original_price,self.discount
-        ]
+    @classmethod
+    def convert_to_object(cls,list_to_convert):
+        return cls(*list_to_convert)
+
+
+class UserEntity(BaseEntity):
+
+    def __init__(self,user_id,user_name,password):
+        self.user_id = user_id
+        self.user_name = user_name
+        self.password = password
+
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self,value):
+        capital_letters = 0
+        small_letters = 0
+        digits = 0
+        special_characters = 0
+        illegal_characters = 0
+        for i in value:
+            if i.isupper(): capital_letters += 1
+            elif i.islower(): small_letters += 1
+            elif i.isdecimal(): digits += 1
+            elif i in ['!','@','#','$','%','^','&','*','(',')',';',':','"',"'",',','.','?','<','>','/','-','_','+','=']:
+                special_characters += 1
+            else: illegal_characters += 1
+        if illegal_characters:     raise ValueError("Error From class UserEntity: illegal characters detected, function: password setter")
+        if not capital_letters:    raise ValueError("Error From UserEntity: need capital letter, function: password setter")
+        if not small_letters:      raise ValueError("Error From UserEntity: need small letter, function: password setter")
+        if not digits:             raise ValueError("Error From UserEntity: need digit, function: password setter")
+        if not special_characters: raise ValueError("Error From UserEntity: need special character, function: password setter")
+        self._password = value
+
+    @property
+    def primary_key(self):
+        return self.user_id
+
 
     @classmethod
     def convert_to_object(cls,list_to_convert):
         return cls(*list_to_convert)
 
+class CustomerEntity(UserEntity):
+    def __init__(self,user_id,user_name,password,balance):
+        super().__init__(user_id,user_name,password)
+        self.balance = balance
+
+    @property
+    def balance(self):
+        return self._balance
+
+    @balance.setter
+    def balance(self,value):
+        try:
+            if int(value) < 0: raise ValueError("Error From class CustomEntity: Balance cannot be negative")
+        except ValueError:
+            raise ValueError("Error From class CustomEntity: Balance must be interger")
+        self._balance = int(value)
 
