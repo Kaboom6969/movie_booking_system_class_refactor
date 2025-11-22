@@ -22,9 +22,10 @@ class BaseManager:
                 raise TypeError("Error From class BaseManager: The item in the value must be of type object")
         self._datas = value
 
-    def add(self):
-        if self.exists(self.entity_type.primary_key): raise ValueError ("Error From class BaseManager: got same primary key in the Manager, function: add")
-        self.datas.append(self.entity_type)
+    def add(self,entity : BaseEntity):
+        if type(entity) != self.entity_type: raise TypeError("Error From class BaseManager: The entity must be the type class")
+        if self.exists(entity.primary_key): raise ValueError ("Error From class BaseManager: got same primary key in the Manager, function: add")
+        self.datas.append(entity)
 
     def remove(self, data_code):
         for data_object in self.datas:
