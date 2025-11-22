@@ -1,4 +1,4 @@
-from Entity import Movie, BaseEntity
+from Entity import MovieEntity, BaseEntity
 
 import csv
 from datetime import datetime
@@ -58,7 +58,7 @@ class BaseManager:
 
 class MovieManager(BaseManager):
     def __init__(self,entity_list : list[BaseEntity]):
-        super().__init__(entity_type= Movie,entity_list=  entity_list)
+        super().__init__(entity_type= MovieEntity, entity_list=  entity_list)
 
     def __str__(self):
         information = []
@@ -68,8 +68,8 @@ class MovieManager(BaseManager):
 
     def add_for_non_entity(self,movie_code, movie_name, cinema_number, cinema_start_time, cinema_end_time, date, original_price,
                    discount):
-        movie = Movie(movie_code, movie_name, cinema_number, cinema_start_time, cinema_end_time, date, original_price,
-                     discount)
+        movie = MovieEntity(movie_code, movie_name, cinema_number, cinema_start_time, cinema_end_time, date, original_price,
+                            discount)
         super().add(movie)
 
     def remove(self, movie_code):
