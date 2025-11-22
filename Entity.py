@@ -28,7 +28,7 @@ class BaseEntity(ABC):
         pass
 
 
-class Movie(BaseEntity):
+class MovieEntity(BaseEntity):
     def __init__(self,movie_code,movie_name,cinema_number,cinema_start_time,cinema_end_time,date,original_price,discount):
         self.movie_code = movie_code
         self.movie_name = movie_name
@@ -39,13 +39,23 @@ class Movie(BaseEntity):
         self.original_price = original_price
         self.discount = discount
 
-
     def __str__(self):
+        information = []
+        information.append(f"{"movie code" : <{20}}:{self.movie_code}")
+        information.append(f"{"movie name" : <{20}}:{self.movie_name}")
+        information.append(f"{"cinema number" : <{20}}:{self.cinema_number}")
+        information.append(f"{"cinema start time" : <{20}}:{self.cinema_start_time}")
+        information.append(f"{"cinema end time" : <{20}}:{self.cinema_end_time}")
+        information.append(f"{"date" : <{20}}:{self.date}")
+        information.append(f"{"original price" : <{20}}:{self.original_price}")
+        information.append(f"{"discount" : <{20}}:{self.discount}")
+        information.append(f"{"final price" : <{20}}:{self.final_price}")
+        return "\n".join(information)
+
+    def __repr__(self):
         information = []
         all_attributes = dir(self)
         for attribute in all_attributes:
-            if attribute.startswith("_"):
-                continue
             try:
                 value = getattr(self, attribute)
                 if callable(value):
