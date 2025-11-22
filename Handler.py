@@ -1,5 +1,6 @@
 import csv
 import pathlib
+import inspect
 from Entity import *
 from Manager import *
 
@@ -41,7 +42,6 @@ class BaseFileHandler:
         with open(self.file_path,"r",newline="") as csv_file:
             file_content = []
             reader = csv.reader(csv_file)
-            next(reader)
             for row in reader:
                 file_content.append(row)
         return file_content
@@ -83,5 +83,10 @@ class ObjectFileHandler(BaseFileHandler):
         super().write_to_csv(data_to_write)
 
     def get_from_csv(self):
-        return [self.entity_type.convert_to_object(i) for i in super().get_from_csv() if i]
+        csv_data = super().get_from_csv()
+        header = csv_data.pop(0)
+        entity_sig = list(inspect.signature(self.entity_type.__init__).parameters.keys())
+        entity_sig.remove('self')
+        if header != entity_sig: raise ValueError("Error From class ObjectFileHandler: Wrong header")
+        return [self.entity_type.convert_to_object(csv_list) for csv_list in csv_data if csv_list]
 
