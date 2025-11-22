@@ -4,9 +4,10 @@ import csv
 from datetime import datetime
 from abc import ABC, abstractmethod
 
-class BaseManager(ABC):
-    def __init__(self):
-        self.datas = []
+class BaseManager:
+    def __init__(self,entity_type : type[BaseEntity],entity_list : list[BaseEntity]):
+        self.entity_type = entity_type
+        self.datas = entity_list
 
     @property
     def datas(self):
@@ -17,13 +18,13 @@ class BaseManager(ABC):
         if type(value) != list: raise TypeError("Error From class BaseManager: The value must be a list")
         self._datas = value
         for item in value:
-            if type(item) != object:
+            if type(item) != self.entity_type:
                 raise TypeError("Error From class BaseManager: The item in the value must be of type object")
         self._datas = value
 
-    def add(self,entity : BaseEntity):
-        if self.exists(entity.primary_key): raise ValueError ("Error From class BaseManager: got same primary key in the Manager, function: add")
-        self.datas.append(entity)
+    def add(self):
+        if self.exists(self.entity_type.primary_key): raise ValueError ("Error From class BaseManager: got same primary key in the Manager, function: add")
+        self.datas.append(self.entity_type)
 
     def remove(self, data_code):
         for data_object in self.datas:
@@ -55,8 +56,8 @@ class BaseManager(ABC):
 
 
 class MovieManager(BaseManager):
-    def __init__(self):
-        super().__init__()
+    def __init__(self,entity_list : list[BaseEntity]):
+        super().__init__(entity_type= Movie,entity_list=  entity_list)
 
     def __str__(self):
         information = []
