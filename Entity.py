@@ -4,13 +4,50 @@ from datetime import datetime
 from functools import cached_property
 
 
-class BaseEntity(ABC):
+class AbstractEntity(ABC):
+
+    @abstractmethod
+    def __init__(self):
+        pass
+
     @property
     @abstractmethod
     def primary_key(self):
         """
         这里需要继承的子类返回自己的主键
         """
+        pass
+
+    @property
+    @abstractmethod
+    def header(self):
+        """
+        这里继承的子类需要在这个函数返回header （通常为子类创建时的参数）
+        :return:
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def convert_to_list(self):
+        """
+        这里需要继承的子类能够返回一个列表（可以表达子类的）
+        :return:
+        """
+        pass
+
+    @classmethod
+    @abstractmethod
+    def convert_to_object(cls,list_to_convert):
+        """
+        这里需要继承的子类完成将list变回对象
+        """
+        pass
+
+class BaseEntity(AbstractEntity, ABC):
+
+    @abstractmethod
+    def __init__(self,*args,**kwargs):
         pass
 
     @property
@@ -25,20 +62,15 @@ class BaseEntity(ABC):
             if not hasattr(self, item):
                 raise AttributeError(f"The parameter {item} is not defined")
             try:
-                list_to_return.append(getattr(self, item))
+                list_to_return.append(getattr(self, str(item)))
             except AttributeError:
                 raise AttributeError(f"The parameter {item} is defined in class {type(self).__name__},but no value")
-
-
-
-
+        return list_to_return
 
     @classmethod
-    def convert_to_object(cls,list_to_convert):
-        """
-        这里需要继承的子类完成将list变回对象
-        """
-        pass
+    def convert_to_object(cls, list_to_convert):
+        return cls(*list_to_convert)
+
 
 
 class MovieEntity(BaseEntity):
@@ -146,17 +178,23 @@ class MovieEntity(BaseEntity):
             raise Exception(f"Unknown Error From class Movie: {e}, function: date setter")
         self._date = str(value)
 
-    @classmethod
-    def convert_to_object(cls,list_to_convert):
-        return cls(*list_to_convert)
-
-
 class UserEntity(BaseEntity):
 
-    def __init__(self,user_id,user_name,password):
+
+    def __init__(self,role,user_id,user_name,password):
+        self.role = role
         self.user_id = user_id
         self.user_name = user_name
         self.password = password
+
+    @property
+    def role(self):
+        return self._role
+
+    @role.setter
+    def role(self,value):
+        if value not in ['Technician','Manager','Clerk']: raise ValueError("Error From class UserEntity: Invalid role, function: role setter")
+        self._role = value
 
     @property
     def password(self):
@@ -187,15 +225,19 @@ class UserEntity(BaseEntity):
     def primary_key(self):
         return self.user_id
 
-
-    @classmethod
-    def convert_to_object(cls,list_to_convert):
-        return cls(*list_to_convert)
-
 class CustomerEntity(UserEntity):
-    def __init__(self,user_id,user_name,password,balance):
-        super().__init__(user_id,user_name,password)
+
+    def __init__(self,role,user_id,user_name,password,balance):
+        super().__init__(role,user_id,user_name,password)
         self.balance = balance
+
+    @property
+    def role(self):
+        return self._role
+
+    @role.setter
+    def role(self,value):
+        if value != 'Customer': raise ValueError("Error From CustomerEntity: Invalid role (It should be Customer Only), function: role setter")
 
     @property
     def balance(self):
@@ -204,8 +246,11 @@ class CustomerEntity(UserEntity):
     @balance.setter
     def balance(self,value):
         try:
-            if int(value) < 0: raise ValueError("Error From class CustomEntity: Balance cannot be negative")
+            int(value)
         except ValueError:
             raise ValueError("Error From class CustomEntity: Balance must be interger")
+
+        if int(value) < 0: raise ValueError("Error From class CustomEntity: Balance cannot be negative")
         self._balance = int(value)
+
 
