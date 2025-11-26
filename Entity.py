@@ -44,7 +44,7 @@ class AbstractEntity(ABC):
         """
         pass
 
-class AbstractEntity(AbstractEntity, ABC):
+class BaseEntity(AbstractEntity, ABC):
 
     @abstractmethod
     def __init__(self,*args,**kwargs):
