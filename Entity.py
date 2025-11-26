@@ -73,7 +73,7 @@ class BaseEntity(AbstractEntity, ABC):
 
 
 
-class MovieEntity(AbstractEntity):
+class MovieEntity(BaseEntity):
     def __init__(self,movie_code,movie_name,cinema_number,cinema_start_time,cinema_end_time,date,original_price,discount):
         self.movie_code = movie_code
         self.movie_name = movie_name
@@ -178,8 +178,9 @@ class MovieEntity(AbstractEntity):
             raise Exception(f"Unknown Error From class Movie: {e}, function: date setter")
         self._date = str(value)
 
-class UserEntity(AbstractEntity):
+class UserEntity(BaseEntity):
 
+    _allowed_role = ['Technician','Manager','Clerk']
 
     def __init__(self,role,user_id,user_name,password):
         self.role = role
@@ -193,7 +194,7 @@ class UserEntity(AbstractEntity):
 
     @role.setter
     def role(self,value):
-        if value not in ['Technician','Manager','Clerk']: raise ValueError("Error From class UserEntity: Invalid role, function: role setter")
+        if value not in self._allowed_role: raise ValueError("Error From class UserEntity: Invalid role, function: role setter")
         self._role = value
 
     @property
@@ -227,6 +228,8 @@ class UserEntity(AbstractEntity):
 
 class CustomerEntity(UserEntity):
 
+    _allowed_role = ['Customer']
+
     def __init__(self,role,user_id,user_name,password,balance):
         super().__init__(role,user_id,user_name,password)
         self.balance = balance
@@ -234,10 +237,6 @@ class CustomerEntity(UserEntity):
     @property
     def role(self):
         return self._role
-
-    @role.setter
-    def role(self,value):
-        if value != 'Customer': raise ValueError("Error From CustomerEntity: Invalid role (It should be Customer Only), function: role setter")
 
     @property
     def balance(self):
