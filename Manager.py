@@ -1,11 +1,51 @@
-from Entity import MovieEntity, BaseEntity
+from Entity import MovieEntity, AbstractEntity, UserEntity
+from abc import ABC, abstractmethod
 
 import csv
 from datetime import datetime
 from abc import ABC, abstractmethod
 
-class BaseManager:
-    def __init__(self,entity_type : type[BaseEntity],entity_list : list[BaseEntity]):
+class AbstractManager(ABC):
+    @abstractmethod
+    def __init__(self):
+        """
+        这里子类需要实现以下构造
+        列表 = [实体对象，实体对象，实体对象...]
+        """
+        pass
+
+    @abstractmethod
+    def add(self,*args):
+        """
+        这里子类需要实现往列表添加实体对象的功能
+        """
+        pass
+
+    @abstractmethod
+    def remove(self,*args):
+        """
+        这里子类需要实现对列表删除实体对象的功能
+        """
+        pass
+
+    @abstractmethod
+    def update(self,*args):
+        """
+        这里子类需要实现对列表内部的实体对象更新的功能(其实是替换)
+        """
+        pass
+
+    @abstractmethod
+    def get(self,*args):
+        """
+        这里子类需要实现返回列表中的特定实体对象的功能
+        :return:
+        """
+        pass
+
+
+class BaseManager(AbstractManager,ABC):
+    def __init__(self, entity_type : type[AbstractEntity], entity_list : list[AbstractEntity]):
         self.entity_type = entity_type
         self.datas = entity_list
 
@@ -22,7 +62,7 @@ class BaseManager:
                 raise TypeError("Error From class BaseManager: The item in the value must be of type object")
         self._datas = value
 
-    def add(self,entity : BaseEntity):
+    def add(self, entity : AbstractEntity):
         if type(entity) != self.entity_type: raise TypeError("Error From class BaseManager: The entity must be the type class")
         if self.exists(entity.primary_key): raise ValueError ("Error From class BaseManager: got same primary key in the Manager, function: add")
         self.datas.append(entity)
@@ -57,7 +97,7 @@ class BaseManager:
 
 
 class MovieManager(BaseManager):
-    def __init__(self,entity_list : list[BaseEntity]):
+    def __init__(self, entity_list : list[AbstractEntity]):
         super().__init__(entity_type= MovieEntity, entity_list=  entity_list)
 
     def __str__(self):
@@ -85,4 +125,31 @@ class MovieManager(BaseManager):
             cinema_start_time=cinema_start_time, cinema_end_time=cinema_end_time, original_price=original_price,
             discount=discount
         )
+
+class UserManager(BaseManager):
+    def __init__(self, entity_list : list[AbstractEntity]):
+        super().__init__(entity_type= UserEntity, entity_list= entity_list)
+        self.role = self.datas[0].role
+
+    @property
+    def datas(self):
+        return self._datas
+    @datas.setter
+    def datas(self, value):
+        for item in value:
+            if item.role != self.role: raise ValueError(
+                "Error From UserManager: The object in the list must be the same role, function: datas setter"
+            )
+        self._datas = value
+
+    def add(self, entity : AbstractEntity):
+        if entity.role != self.role: raise ValueError("Error From UserManager: The object in the list must be the same role, function: add")
+        super().add(entity)
+
+    def update(self, user_code, **kwargs):
+        if kwargs['role'].get() != self.role: raise ValueError("Error From UserManager: The object in the list must be the same role, function: update")
+        super().update(user_code, **kwargs)
+
+
+
 
