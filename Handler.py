@@ -69,7 +69,7 @@ class BaseFileHandler:
 
 
 class ObjectFileHandler(BaseFileHandler):
-    def __init__(self,file_path,entity_type : type[BaseEntity]):
+    def __init__(self, file_path, entity_type : type[AbstractEntity]):
         super().__init__(file_path)
         self.entity_type = entity_type
 
@@ -87,6 +87,7 @@ class ObjectFileHandler(BaseFileHandler):
 
     def get_from_csv(self):
         csv_data = super().get_from_csv()
+        if not csv_data: return False
         header = csv_data.pop(0)
         entity_sig = list(inspect.signature(self.entity_type.__init__).parameters.keys())
         entity_sig.remove('self')

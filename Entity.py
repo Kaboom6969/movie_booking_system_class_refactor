@@ -44,7 +44,7 @@ class AbstractEntity(ABC):
         """
         pass
 
-class BaseEntity(AbstractEntity, ABC):
+class AbstractEntity(AbstractEntity, ABC):
 
     @abstractmethod
     def __init__(self,*args,**kwargs):
@@ -73,7 +73,7 @@ class BaseEntity(AbstractEntity, ABC):
 
 
 
-class MovieEntity(BaseEntity):
+class MovieEntity(AbstractEntity):
     def __init__(self,movie_code,movie_name,cinema_number,cinema_start_time,cinema_end_time,date,original_price,discount):
         self.movie_code = movie_code
         self.movie_name = movie_name
@@ -178,7 +178,7 @@ class MovieEntity(BaseEntity):
             raise Exception(f"Unknown Error From class Movie: {e}, function: date setter")
         self._date = str(value)
 
-class UserEntity(BaseEntity):
+class UserEntity(AbstractEntity):
 
 
     def __init__(self,role,user_id,user_name,password):
